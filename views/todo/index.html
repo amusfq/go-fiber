@@ -1,16 +1,40 @@
-<div class="max-w-2xl mx-auto space-y-4 border rounded-md shadow py-2 px-4">
+<script>
+  const handleDelete = (id) => {
+    const isConfirmed = confirm("Are you sure?");
+    if (isConfirmed) {
+      return fetch(`/todo/${id}`, {
+        method: "DELETE",
+      }).then(() => {
+        alert("Data deleted successufuly");
+        document.location.reload();
+      });
+    }
+  };
+</script>
+<div class="max-w-2xl mx-auto space-y-4 border rounded-md shadow py-3 px-4">
   <h1 class="text-3xl font-bold text-blue-400">List Todo</h1>
-  {{range .Data}}
-  <div class="border px-3 py-2 rounded relative">
+  {{if .Data}} {{range .Data}}
+  <div class="border px-3 py-5 rounded relative">
     <p class="font-bold">{{.Title}}</p>
     <p class="text-gray-500">{{.Description}}</p>
     <div
-      class="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col space-y-1"
+      class="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col space-y-2"
     >
-      <button>EDIT</button>
-      <button>DELETE</button>
+      <a
+        href="/todo/{{.ID}}"
+        class="text-center bg-blue-400 hover:bg-blue-500 px-4 py-1 rounded text-white"
+        >EDIT</a
+      >
+      <button
+        onClick="handleDelete({{.ID}})"
+        class="text-center bg-red-400 hover:bg-red-500 px-4 py-1 rounded text-white"
+      >
+        DELETE
+      </button>
     </div>
   </div>
+  {{end}} {{else}}
+  <div class="text-center font-bold">No Data</div>
   {{end}}
   <div class="flex flex-row justify-end">
     <a
