@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"math"
+	"strconv"
 	"github.com/amusfq/go-fiber/database"
 	"github.com/amusfq/go-fiber/models"
 	"github.com/gofiber/fiber/v2"
@@ -8,11 +10,41 @@ import (
 
 func GetAllTodo(c *fiber.Ctx) error {
 	data := []models.Todo{}
-	database.DB.Db.Find(&data)
+	search := c.Query("search")
+    perPage, err := strconv.Atoi(c.Query("perPage", "10"))
+	if err != nil {
+		return c.SendString("perPage harus angka")
+	}
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil {
+		return c.SendString("page harus angka")
+	}
+
+    offset := (page - 1) * perPage
+	result := database.DB.Db
+
+	if search != "" {
+		result = result.Where("title like ?", "%"+search+"%")
+	}
+	result.Offset(offset).Limit(perPage).Find(&data)
+
+	var total int64
+
+	if search != "" {
+		database.DB.Db.Where("title like ?", "%"+search+"%").Count(&total)
+	} else {
+		database.DB.Db.Model(&models.Todo{}).Count(&total)
+	}
+	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
+
 	return c.Render("todo/index", fiber.Map{
 		"PageTitle":       "List Todo",
 		"PageDescription": "List of Todo",
 		"Data":            data,
+		"TotalData": total,
+		"Page": int(page),
+		"TotalPages": totalPages,
+		"PerPage": perPage,
 	})
 }
 
